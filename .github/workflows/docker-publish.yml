@@ -1,0 +1,67 @@
+name: Build and Publish Docker Images
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  test-and-build:
+    name: Build and Push to Docker Hub
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Java JDK 21
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      # Step 3: Test and package the Backend application
+      - name: Build Backend with Maven
+        run: |
+          mvn clean package -DskipTests
+
+      # Step 4: Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Step 5: Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Step 6: Build and Push Backend Docker Image
+      - name: Build and Push Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/taskmanager-backend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/taskmanager-backend:${{ github.sha }}
+
+      # Step 7: Build and Push Frontend Docker Image
+      - name: Build and Push Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/taskmanager-frontend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/taskmanager-frontend:${{ github.sha }}

@@ -1,0 +1,46 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: taskmanager-mongodb
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: taskmanager
+    networks:
+      - taskmanager-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: taskmanager-backend
+    ports:
+      - "8082:8080"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/taskmanager
+      - JWT_SECRET=5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437
+    depends_on:
+      - mongodb
+    networks:
+      - taskmanager-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: taskmanager-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - taskmanager-network
+
+networks:
+  taskmanager-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
