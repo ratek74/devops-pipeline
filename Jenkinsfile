@@ -7,7 +7,8 @@ pipeline {
     }
 
     environment {
-        DOCKER_IMAGE = 'taskmanager-backend:latest'
+        BACKEND_IMAGE = 'kumarritik74/taskmanager-backend:latest'
+        FRONTEND_IMAGE = 'kumarritik74/taskmanager-frontend:latest'
     }
 
     stages {
@@ -19,31 +20,45 @@ pipeline {
 
         stage('Maven Clean') {
             steps {
-                sh 'mvn clean'
+                bat 'mvn clean'
             }
         }
 
         stage('Compile') {
             steps {
-                sh 'mvn compile'
+                bat 'mvn compile'
             }
         }
 
         stage('Run Tests') {
             steps {
-                sh 'mvn test'
+                bat 'mvn test'
             }
         }
 
         stage('Package Application') {
             steps {
-                sh 'mvn package -DskipTests'
+                bat 'mvn package -DskipTests'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Docker Images') {
             steps {
-                sh "docker build -t ${DOCKER_IMAGE} ."
+                // Build Backend Image
+                bat "docker build -t ${BACKEND_IMAGE} ."
+                // Build Frontend Image
+                bat "docker build -t ${FRONTEND_IMAGE} ./frontend"
+            }
+        }
+
+        stage('Push Docker Images') {
+            steps {
+                // Log in to Docker Hub using credentials stored in Jenkins
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
+                    bat "docker push ${BACKEND_IMAGE}"
+                    bat "docker push ${FRONTEND_IMAGE}"
+                }
             }
         }
 
@@ -57,12 +72,9 @@ pipeline {
     post {
         success {
             echo 'Pipeline executed successfully.'
-            // Add notification plugins if available (e.g., mail, slack)
-            // slackSend channel: '#builds', color: 'good', message: "SUCCESS: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'"
         }
         failure {
             echo 'Pipeline execution failed.'
-            // slackSend channel: '#builds', color: 'danger', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'"
         }
     }
 }
