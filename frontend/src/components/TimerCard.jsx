@@ -72,7 +72,7 @@ const TimerCard = ({ timer }) => {
       </div>
 
       {!isDone && (
-        <div className="timer-controls">
+        <div className="timeer-controls">
           <button className="timer-control-btn" onClick={handleReset} title="Reset">
             <RotateCcw size={18} />
           </button>

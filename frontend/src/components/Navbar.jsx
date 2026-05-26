@@ -295,7 +295,7 @@ const Navbar = () => {
           
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '48px', overflowY: 'auto' }}>
             <Link to="/" className={`mobile-nav-link ${isActive('/') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>
-              My Tasks <ChevronRight size={20} />
+              My Tasks updated <ChevronRight size={20} />
             </Link>
             
             <div className="mobile-nav-link" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '16px', paddingBottom: '24px' }}>
